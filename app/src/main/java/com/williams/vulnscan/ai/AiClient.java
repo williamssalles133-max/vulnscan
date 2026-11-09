@@ -31,6 +31,7 @@ public final class AiClient {
             Agrupe por severidade. Não invente vulnerabilidades que não estejam no JSON.
             Se uma sonda Firebase estiver ABERTO, trate como exposição real de dados e explique como fechar as regras.
             Segredos já chegam mascarados: não peça o valor completo.
+            Achados da categoria Login são diagnósticos. Explique a correção. Não descreva como testar senhas, contornar a tela de login ou invadir a conta.
             Seja direto e prático. Responda em Markdown.""";
 
     private final OkHttpClient client;

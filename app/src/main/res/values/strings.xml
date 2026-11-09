@@ -5,6 +5,7 @@
     <string name="disclaimer">Use apenas em aplicativos próprios ou com autorização.</string>
     <string name="tab_analysis">Análise</string>
     <string name="tab_firebase">Firebase</string>
+    <string name="tab_login">Login</string>
     <string name="tab_ai">IA</string>
 
     <string name="section_target">Alvo da análise</string>
@@ -54,7 +55,18 @@
     <string name="key_unavailable">Não foi possível abrir o armazenamento criptografado. A análise local segue disponível.</string>
     <string name="ai_placeholder">O parecer da IA aparece aqui.</string>
     <string name="ai_disclaimer">Gerado por um modelo de linguagem. Revise antes de aplicar qualquer correção.</string>
-    <string name="ai_need_data">Faça uma análise ou teste as regras antes de pedir a IA.</string>
+    <string name="ai_need_data">Faça uma análise, um teste de regras ou a verificação de login antes de pedir a IA.</string>
+
+    <string name="login_title">Autenticação</string>
+    <string name="login_intro">Procura sinais de login fraco no APK escolhido na aba Análise. É só diagnóstico: nenhuma senha é testada e nenhuma conta é acessada.</string>
+    <string name="login_help_title">Como corrigir login</string>
+    <string name="login_help_body">Autentique no servidor: o app envia a senha por HTTPS e recebe um token. Guarde a senha com hash lento (bcrypt, scrypt ou Argon2) e sal único — não use MD5, SHA-1 nem texto puro. Force TLS, desative usesCleartextTraffic e fixe uma network security config. Limite tentativas no servidor, com bloqueio temporário. No aparelho, guarde tokens em EncryptedSharedPreferences ou no Keystore, nunca em log ou arquivo texto. Ofereça verificação em duas etapas nas contas importantes. Não coloque senha, token ou usuário padrão dentro do APK. Se usar Firebase Auth, feche as regras do banco, ative o App Check e restrinja a API key: a chave do cliente não protege os dados.</string>
+    <string name="login_check">Verificar autenticação</string>
+    <string name="login_check_again">Verificar novamente</string>
+    <string name="login_empty">Os achados de login aparecem aqui, agrupados por severidade.</string>
+    <string name="login_no_target">Escolha um app na aba Análise antes de verificar o login.</string>
+    <string name="status_login">Lendo sinais de autenticação no APK…</string>
+    <string name="status_login_done">Verificação de login concluída · %1$d achados</string>
     <string name="key_removed">Chave removida deste aparelho.</string>
     <string name="key_stored">Chave armazenada com criptografia.</string>
     <string name="key_empty">Cole uma chave antes de salvar.</string>
