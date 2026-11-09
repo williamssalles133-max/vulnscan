@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#F3F6FB</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#E7EDF6</color>
+    <color name="on_surface">#121826</color>
+    <color name="on_surface_variant">#526077</color>
+    <color name="primary">#0F766E</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#CCFBF1</color>
+    <color name="on_primary_container">#134E4A</color>
+    <color name="secondary">#4338CA</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#E0E7FF</color>
+    <color name="on_secondary_container">#312E81</color>
+    <color name="outline">#D5DEEA</color>
+    <color name="disclaimer_bg">#FFF7ED</color>
+    <color name="disclaimer_stroke">#FDBA74</color>
+    <color name="disclaimer_text">#9A3412</color>
+    <color name="severity_high">#BE123C</color>
+    <color name="severity_high_bg">#FFE4E6</color>
+    <color name="severity_medium">#C2410C</color>
+    <color name="severity_medium_bg">#FFEDD5</color>
+    <color name="severity_low">#047857</color>
+    <color name="severity_low_bg">#D1FAE5</color>
+    <color name="severity_info">#1D4ED8</color>
+    <color name="severity_info_bg">#DBEAFE</color>
+    <color name="header_start">#DDF7F4</color>
+    <color name="header_end">#F3F6FB</color>
+    <color name="ic_launcher_background">#102033</color>
+</resources>

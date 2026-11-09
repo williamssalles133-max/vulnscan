@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VulnScan</string>
+    <string name="app_subtitle">Segurança dos seus apps</string>
+    <string name="disclaimer">Use apenas em aplicativos próprios ou com autorização.</string>
+    <string name="tab_analysis">Análise</string>
+    <string name="tab_firebase">Firebase</string>
+    <string name="tab_ai">IA</string>
+
+    <string name="section_target">Alvo da análise</string>
+    <string name="no_target">Nenhum alvo selecionado</string>
+    <string name="no_target_hint">Escolha um app instalado ou um arquivo APK.</string>
+    <string name="pick_installed">Apps instalados</string>
+    <string name="pick_apk">Arquivo APK</string>
+    <string name="analyze">Iniciar análise</string>
+    <string name="analyze_again">Analisar novamente</string>
+    <string name="empty_findings">Os achados aparecem aqui, agrupados por severidade.</string>
+    <string name="copied">Copiado para a área de transferência.</string>
+    <string name="cd_app_icon">Ícone do aplicativo</string>
+    <string name="cd_disclaimer">Aviso de uso</string>
+
+    <string name="apps_title">Aplicativos instalados</string>
+    <string name="apps_search">Buscar por nome ou pacote</string>
+    <string name="apps_system">Mostrar apps do sistema</string>
+    <string name="apps_empty">Nenhum aplicativo encontrado.</string>
+    <string name="apps_limited">A lista está limitada a apps com ícone na tela inicial. A permissão para consultar todos os pacotes não está concedida neste aparelho.</string>
+    <string name="apps_loading">Carregando aplicativos…</string>
+    <string name="apps_failed">Não foi possível listar os aplicativos. Use o seletor de arquivo APK.</string>
+
+    <string name="firebase_intro">Testa, sem login, se o Firestore, o Realtime Database e o Storage do seu projeto respondem a um cliente anônimo. Use somente em projeto seu.</string>
+    <string name="hint_project_id">Project ID do Firebase</string>
+    <string name="hint_api_key">Web API key</string>
+    <string name="hint_database_url">URL do Realtime Database (opcional)</string>
+    <string name="hint_bucket">Bucket do Storage (opcional)</string>
+    <string name="fill_from_scan">Preencher da análise</string>
+    <string name="run_probes">Testar regras</string>
+    <string name="firebase_not_detected">Nenhum projeto Firebase detectado na última análise. Você pode preencher os campos manualmente.</string>
+    <string name="firebase_detected">Detectado na análise: %1$s</string>
+    <string name="probe_confirm_title">Testar regras sem autenticação?</string>
+    <string name="probe_confirm_message">As sondagens usam apenas HTTPS anônimo. Se a escrita do Firestore estiver aberta, um documento pequeno será criado na coleção vulnscan_probe. Nada será apagado.</string>
+    <string name="cancel">Cancelar</string>
+    <string name="probe_confirm_go">Testar</string>
+    <string name="probe_results">Resultados</string>
+    <string name="firebase_fill_empty">A última análise não trouxe project id, chave ou URL.</string>
+
+    <string name="ai_intro">Opcional. Sem uma chave da xAI o app mostra a análise local e o teste de regras normalmente. Com a chave, a IA explica cada achado e como corrigir.</string>
+    <string name="ai_privacy">A chave fica só neste aparelho, criptografada. Os segredos enviados à IA são mascarados.</string>
+    <string name="hint_xai_key">Chave da API xAI (Grok)</string>
+    <string name="save_key">Salvar chave</string>
+    <string name="remove_key">Remover</string>
+    <string name="analyze_ai">Analisar com IA</string>
+    <string name="key_saved">Chave salva neste aparelho.</string>
+    <string name="key_missing">Nenhuma chave salva. A análise local continua disponível.</string>
+    <string name="key_unavailable">Não foi possível abrir o armazenamento criptografado. A análise local segue disponível.</string>
+    <string name="ai_placeholder">O parecer da IA aparece aqui.</string>
+    <string name="ai_disclaimer">Gerado por um modelo de linguagem. Revise antes de aplicar qualquer correção.</string>
+    <string name="ai_need_data">Faça uma análise ou teste as regras antes de pedir a IA.</string>
+    <string name="key_removed">Chave removida deste aparelho.</string>
+    <string name="key_stored">Chave armazenada com criptografia.</string>
+    <string name="key_empty">Cole uma chave antes de salvar.</string>
+    <string name="key_save_failed">Não foi possível salvar a chave no armazenamento criptografado.</string>
+
+    <string name="err_pick_apk">Não foi possível ler o APK selecionado.</string>
+    <string name="err_apk_too_big">Esse APK passa de 400 MB e não foi copiado.</string>
+    <string name="err_no_target">Escolha um aplicativo ou um arquivo APK.</string>
+    <string name="err_app_gone">Esse aplicativo não está mais instalado.</string>
+    <string name="err_apk_corrupt">Não foi possível abrir o APK. O arquivo pode estar corrompido.</string>
+    <string name="err_apk_read">Falha ao ler o conteúdo do APK.</string>
+    <string name="err_analysis">Não foi possível concluir a análise.</string>
+    <string name="err_oom">O APK é grande demais para analisar neste aparelho.</string>
+    <string name="err_open_app">Não foi possível abrir esse aplicativo.</string>
+    <string name="status_copying">Copiando APK…</string>
+    <string name="status_manifest">Lendo manifesto e permissões…</string>
+    <string name="status_secrets">Procurando segredos no pacote…</string>
+    <string name="status_done">Análise concluída · %1$d achados</string>
+    <string name="status_probing">Consultando os serviços…</string>
+    <string name="status_ai">Consultando a IA…</string>
+    <string name="err_no_network">Sem conexão com a internet.</string>
+    <string name="err_timeout">Tempo esgotado. Verifique a rede e tente de novo.</string>
+    <string name="err_network">Erro de rede ao falar com o serviço.</string>
+    <string name="err_ai_format">A resposta da IA veio em um formato inesperado.</string>
+</resources>
