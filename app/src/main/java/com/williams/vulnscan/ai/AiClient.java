@@ -53,13 +53,17 @@ public final class AiClient {
         if (apiKey == null || apiKey.trim().isEmpty()) {
             throw new AiException("Nenhuma chave de API informada.");
         }
+        String key = apiKey.trim();
+        if (!key.startsWith("xai-")) {
+            throw new AiException("A chave parece inválida. Ela deve começar com xai- (cole a chave completa da Grok API).");
+        }
         try {
-            return complete(apiKey.trim(), "grok-4", summaryJson);
+            return complete(key, "grok-4.7", summaryJson);
         } catch (ModelMissing missing) {
             try {
-                return complete(apiKey.trim(), "grok-3", summaryJson);
+                return complete(key, "grok-4.3", summaryJson);
             } catch (ModelMissing again) {
-                throw new AiException("Nenhum dos modelos grok-4 ou grok-3 foi aceito pela API xAI.");
+                throw new AiException("Nenhum dos modelos grok-4.7 ou grok-4.3 foi aceito pela API xAI.");
             }
         }
     }
@@ -131,7 +135,9 @@ public final class AiClient {
                 || lower.contains("does not exist")
                 || lower.contains("unknown")
                 || lower.contains("not available")
-                || lower.contains("invalid"));
+                || lower.contains("invalid")
+                || lower.contains("incorrect")
+                || lower.contains("unsupported"));
     }
 
     private static String httpError(int code, String body) {
