@@ -98,7 +98,7 @@ public final class FindingSummarizer {
         }
     }
 
-    private static void appendFinding(StringBuilder json, Finding finding, int detailLimit) {
+    static void appendFinding(StringBuilder json, Finding finding, int detailLimit) {
         json.append('{');
         field(json, "severidade", finding.severity.label());
         json.append(',');

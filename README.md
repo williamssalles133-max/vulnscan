@@ -1,8 +1,12 @@
-# VulnScan
+# VulnScan Pro
 
-Analisador de vulnerabilidades de apps Android para uso próprio. A aba Login só aponta fraquezas de autenticação e como corrigir; não testa senhas.
+Analisador de vulnerabilidades de apps Android para uso próprio (versão 1.2.0). A aba Login só aponta fraquezas de autenticação e como corrigir; não testa senhas.
 
 Use apenas em aplicativos próprios ou com autorização. O app não envia o APK para lugar nenhum: a varredura é local. A chave opcional da xAI fica criptografada no aparelho.
+
+## Análise profunda (IA)
+
+Na aba IA, **Análise Profunda (IA)** lê no aparelho o manifesto (pelo analisador já existente), as strings de `classes*.dex`, os nomes das bibliotecas `.so`, os assets e os recursos. O extrato é mascarado e limitado em tamanho antes de ir para a API xAI (grok-4.7, com fallback grok-4.3). A resposta agrupa achados por severidade e descreve o risco, a evidência e a correção. O app não altera, não injeta e não instrumenta outros aplicativos.
 
 ## Gerar o APK de debug
 

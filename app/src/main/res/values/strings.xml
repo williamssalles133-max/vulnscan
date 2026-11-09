@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">VulnScan</string>
+    <string name="app_name">VulnScan Pro</string>
     <string name="app_subtitle">Segurança dos seus apps</string>
     <string name="disclaimer">Use apenas em aplicativos próprios ou com autorização.</string>
     <string name="tab_analysis">Análise</string>
@@ -44,12 +44,21 @@
     <string name="probe_results">Resultados</string>
     <string name="firebase_fill_empty">A última análise não trouxe project id, chave ou URL.</string>
 
-    <string name="ai_intro">Opcional. Sem uma chave da xAI o app mostra a análise local e o teste de regras normalmente. Com a chave, a IA explica cada achado e como corrigir.</string>
+    <string name="ai_intro">Opcional. Sem uma chave da xAI o app mostra a análise local e o teste de regras normalmente. Com a chave, a IA explica cada achado e como corrigir. A análise profunda lê o APK neste aparelho e pede um parecer por severidade, só com correção.</string>
     <string name="ai_privacy">A chave fica só neste aparelho, criptografada. Os segredos enviados à IA são mascarados.</string>
     <string name="hint_xai_key">Chave da API xAI (Grok)</string>
     <string name="save_key">Salvar chave</string>
     <string name="remove_key">Remover</string>
     <string name="analyze_ai">Analisar com IA</string>
+    <string name="analyze_deep">Análise Profunda (IA)</string>
+    <string name="ai_deep_help">Lê o manifesto, as strings do DEX, as bibliotecas nativas, os assets e os recursos do APK escolhido na aba Análise. O trecho enviado à IA é mascarado e limitado. O parecer traz severidade, evidência e correção.</string>
+    <string name="ai_title_summary">Parecer da IA</string>
+    <string name="ai_title_deep">Análise profunda</string>
+    <string name="deep_no_target">Escolha um app na aba Análise antes da análise profunda.</string>
+    <string name="deep_busy">Espere a cópia ou a análise atual terminar.</string>
+    <string name="status_deep_manifest">Lendo o manifesto…</string>
+    <string name="status_deep_extract">Extraindo código do APK…</string>
+    <string name="status_deep_ai">Consultando a IA (análise profunda)…</string>
     <string name="key_saved">Chave salva neste aparelho.</string>
     <string name="key_missing">Nenhuma chave salva. A análise local continua disponível.</string>
     <string name="key_unavailable">Não foi possível abrir o armazenamento criptografado. A análise local segue disponível.</string>

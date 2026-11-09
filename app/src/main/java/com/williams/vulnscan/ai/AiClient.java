@@ -39,9 +39,9 @@ public final class AiClient {
     public AiClient() {
         this(new OkHttpClient.Builder()
                 .connectTimeout(20, TimeUnit.SECONDS)
-                .readTimeout(90, TimeUnit.SECONDS)
+                .readTimeout(120, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
-                .callTimeout(120, TimeUnit.SECONDS)
+                .callTimeout(180, TimeUnit.SECONDS)
                 .followRedirects(false)
                 .build());
     }
@@ -51,6 +51,18 @@ public final class AiClient {
     }
 
     public String analyze(String apiKey, String summaryJson) throws AiException, IOException {
+        return withFallback(requireKey(apiKey), SYSTEM_PROMPT, "Resumo da varredura:\n" + summaryJson);
+    }
+
+    public String analyzeDeep(String apiKey, String contextJson) throws AiException, IOException {
+        return withFallback(requireKey(apiKey), DeepAnalysisPrompt.SYSTEM, DeepAnalysisPrompt.USER_PREFIX + contextJson);
+    }
+
+    public static void checkKey(String apiKey) throws AiException {
+        requireKey(apiKey);
+    }
+
+    private static String requireKey(String apiKey) throws AiException {
         if (apiKey == null || apiKey.trim().isEmpty()) {
             throw new AiException("Nenhuma chave de API informada.");
         }
@@ -58,28 +70,30 @@ public final class AiClient {
         if (!key.startsWith("xai-")) {
             throw new AiException("A chave parece inválida. Ela deve começar com xai- (cole a chave completa da Grok API).");
         }
+        return key;
+    }
+
+    private String withFallback(String apiKey, String system, String user) throws AiException, IOException {
         try {
-            return complete(key, "grok-4.7", summaryJson);
+            return complete(apiKey, "grok-4.7", system, user);
         } catch (ModelMissing missing) {
             try {
-                return complete(key, "grok-4.3", summaryJson);
+                return complete(apiKey, "grok-4.3", system, user);
             } catch (ModelMissing again) {
                 throw new AiException("Nenhum dos modelos grok-4.7 ou grok-4.3 foi aceito pela API xAI.");
             }
         }
     }
 
-    private String complete(String apiKey, String model, String summaryJson) throws AiException, IOException, ModelMissing {
+    private String complete(String apiKey, String model, String system, String user) throws AiException, IOException, ModelMissing {
         JSONObject body = new JSONObject();
         try {
             body.put("model", model);
             body.put("temperature", 0.2);
             body.put("stream", false);
             JSONArray messages = new JSONArray();
-            messages.put(new JSONObject().put("role", "system").put("content", SYSTEM_PROMPT));
-            messages.put(new JSONObject()
-                    .put("role", "user")
-                    .put("content", "Resumo da varredura:\n" + summaryJson));
+            messages.put(new JSONObject().put("role", "system").put("content", system));
+            messages.put(new JSONObject().put("role", "user").put("content", user));
             body.put("messages", messages);
         } catch (JSONException ex) {
             throw new AiException("Não foi possível montar o pedido para a IA.");
@@ -88,7 +102,7 @@ public final class AiClient {
                 .url(ENDPOINT)
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Accept", "application/json")
-                .header("User-Agent", "VulnScan/1.0")
+                .header("User-Agent", "VulnScan/1.2")
                 .post(RequestBody.create(body.toString(), JSON))
                 .build();
         try (Response response = client.newCall(request).execute()) {
