@@ -16,9 +16,12 @@ import com.williams.vulnscan.ai.AiClient;
 import com.williams.vulnscan.ai.FindingSummarizer;
 import com.williams.vulnscan.analysis.AnalysisException;
 import com.williams.vulnscan.analysis.ApkAnalyzer;
+import com.williams.vulnscan.analysis.LoginAuthScanner;
+import com.williams.vulnscan.analysis.LoginManifestReader;
 import com.williams.vulnscan.data.Event;
 import com.williams.vulnscan.data.SecurePrefs;
 import com.williams.vulnscan.firebase.FirebaseRulesTester;
+import com.williams.vulnscan.model.Finding;
 import com.williams.vulnscan.model.FirebaseHints;
 import com.williams.vulnscan.model.ProbeResult;
 import com.williams.vulnscan.model.ScanResult;
@@ -30,6 +33,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,6 +53,11 @@ public class ScanViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> analysisRunning = new MutableLiveData<>(false);
     private final MutableLiveData<String> analysisStatus = new MutableLiveData<>();
     private final MutableLiveData<Event<String>> analysisError = new MutableLiveData<>();
+
+    private final MutableLiveData<List<Finding>> loginFindings = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> loginRunning = new MutableLiveData<>(false);
+    private final MutableLiveData<String> loginStatus = new MutableLiveData<>();
+    private final MutableLiveData<Event<String>> loginError = new MutableLiveData<>();
 
     private final MutableLiveData<List<ProbeResult>> probes = new MutableLiveData<>();
     private final MutableLiveData<Boolean> probeRunning = new MutableLiveData<>(false);
@@ -82,6 +93,22 @@ public class ScanViewModel extends AndroidViewModel {
 
     public LiveData<Event<String>> analysisError() {
         return analysisError;
+    }
+
+    public LiveData<List<Finding>> loginFindings() {
+        return loginFindings;
+    }
+
+    public LiveData<Boolean> loginRunning() {
+        return loginRunning;
+    }
+
+    public LiveData<String> loginStatus() {
+        return loginStatus;
+    }
+
+    public LiveData<Event<String>> loginError() {
+        return loginError;
     }
 
     public LiveData<List<ProbeResult>> probes() {
@@ -220,6 +247,48 @@ public class ScanViewModel extends AndroidViewModel {
         });
     }
 
+    public void analyzeLogin() {
+        SelectedTarget target = selected.getValue();
+        if (target == null) {
+            loginError.setValue(new Event<>(s(R.string.login_no_target)));
+            return;
+        }
+        if (Boolean.TRUE.equals(loginRunning.getValue())) {
+            return;
+        }
+        loginRunning.setValue(true);
+        loginStatus.setValue(s(R.string.status_login));
+        io.execute(() -> {
+            try {
+                LoginManifestReader.Flags flags = LoginManifestReader.read(getApplication(), target);
+                List<File> apks = apkFiles(target);
+                if (apks.isEmpty()) {
+                    loginError.postValue(new Event<>(s(R.string.err_apk_read)));
+                    loginStatus.postValue(null);
+                    return;
+                }
+                LoginAuthScanner scanner = new LoginAuthScanner();
+                List<Finding> merged = new ArrayList<>();
+                for (File apk : apks) {
+                    merged.addAll(scanner.scan(apk, flags.read, flags.cleartext));
+                }
+                loginFindings.postValue(merged);
+                loginStatus.postValue(s(R.string.status_login_done, merged.size()));
+            } catch (java.util.zip.ZipException ex) {
+                loginStatus.postValue(null);
+                loginError.postValue(new Event<>(s(R.string.err_apk_corrupt)));
+            } catch (OutOfMemoryError ex) {
+                loginStatus.postValue(null);
+                loginError.postValue(new Event<>(s(R.string.err_oom)));
+            } catch (Exception ex) {
+                loginStatus.postValue(null);
+                loginError.postValue(new Event<>(s(R.string.err_analysis)));
+            } finally {
+                loginRunning.postValue(false);
+            }
+        });
+    }
+
     public void probe(FirebaseHints hints) {
         if (Boolean.TRUE.equals(probeRunning.getValue())) {
             return;
@@ -288,9 +357,11 @@ public class ScanViewModel extends AndroidViewModel {
     public void analyzeWithAi(String typedKey) {
         ScanResult currentScan = scan.getValue();
         List<ProbeResult> currentProbes = probes.getValue();
+        List<Finding> currentLogin = loginFindings.getValue();
         boolean hasScan = currentScan != null && currentScan.findings != null && !currentScan.findings.isEmpty();
         boolean hasProbes = currentProbes != null && !currentProbes.isEmpty();
-        if (!hasScan && !hasProbes) {
+        boolean hasLogin = currentLogin != null && !currentLogin.isEmpty();
+        if (!hasScan && !hasProbes && !hasLogin) {
             aiError.setValue(new Event<>(s(R.string.ai_need_data)));
             return;
         }
@@ -298,7 +369,7 @@ public class ScanViewModel extends AndroidViewModel {
             return;
         }
         aiRunning.setValue(true);
-        String summary = FindingSummarizer.summarize(currentScan, currentProbes);
+        String summary = FindingSummarizer.summarize(currentScan, currentProbes, currentLogin);
         io.execute(() -> {
             try {
                 String key = Text.trimToNull(typedKey);
@@ -323,6 +394,35 @@ public class ScanViewModel extends AndroidViewModel {
                 aiRunning.postValue(false);
             }
         });
+    }
+
+    private List<File> apkFiles(SelectedTarget target) {
+        LinkedHashSet<String> paths = new LinkedHashSet<>();
+        try {
+            if (target.kind == SelectedTarget.Kind.INSTALLED && target.packageName != null) {
+                android.content.pm.ApplicationInfo info = getApplication().getPackageManager()
+                        .getApplicationInfo(target.packageName, 0);
+                if (info.sourceDir != null) {
+                    paths.add(info.sourceDir);
+                }
+                if (info.splitSourceDirs != null) {
+                    Collections.addAll(paths, info.splitSourceDirs);
+                }
+            }
+        } catch (Exception ignored) {
+            paths.clear();
+        }
+        if (paths.isEmpty() && target.apkPath != null) {
+            paths.add(target.apkPath);
+        }
+        List<File> files = new ArrayList<>();
+        for (String path : paths) {
+            File file = new File(path);
+            if (file.isFile()) {
+                files.add(file);
+            }
+        }
+        return files;
     }
 
     private SecurePrefs prefs() throws Exception {

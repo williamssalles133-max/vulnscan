@@ -13,11 +13,15 @@ public final class FindingSummarizer {
     }
 
     public static String summarize(ScanResult scan, List<ProbeResult> probes) {
-        String full = build(scan, probes, true, 420);
+        return summarize(scan, probes, null);
+    }
+
+    public static String summarize(ScanResult scan, List<ProbeResult> probes, List<Finding> extra) {
+        String full = build(scan, probes, extra, true, 420);
         if (full.length() <= 24000) {
             return full;
         }
-        return build(scan, probes, false, 180);
+        return build(scan, probes, extra, false, 180);
     }
 
     public static String mask(String value) {
@@ -31,11 +35,11 @@ public final class FindingSummarizer {
         return trimmed.substring(0, 4) + "…" + trimmed.substring(trimmed.length() - 4);
     }
 
-    private static String build(ScanResult scan, List<ProbeResult> probes, boolean includeInfo, int detailLimit) {
+    private static String build(ScanResult scan, List<ProbeResult> probes, List<Finding> extra, boolean includeInfo, int detailLimit) {
         StringBuilder json = new StringBuilder(2048);
         json.append('{');
         if (scan == null) {
-            json.append("\"app\":null,\"achados\":[]");
+            json.append("\"app\":null");
         } else {
             json.append("\"app\":{");
             field(json, "nome", scan.label);
@@ -45,27 +49,19 @@ public final class FindingSummarizer {
             field(json, "versao", scan.versionName);
             json.append(",\"minSdk\":").append(scan.minSdk);
             json.append(",\"targetSdk\":").append(scan.targetSdk);
-            json.append("},\"achados\":[");
-            List<Finding> selected = new ArrayList<>();
-            if (scan.findings != null) {
-                for (Finding finding : scan.findings) {
-                    if (!includeInfo && finding.severity == Severity.INFO) {
-                        continue;
-                    }
-                    selected.add(finding);
-                    if (selected.size() >= 50) {
-                        break;
-                    }
-                }
-            }
-            for (int i = 0; i < selected.size(); i++) {
-                if (i > 0) {
-                    json.append(',');
-                }
-                appendFinding(json, selected.get(i), detailLimit);
-            }
-            json.append(']');
+            json.append('}');
         }
+        json.append(",\"achados\":[");
+        List<Finding> selected = new ArrayList<>();
+        appendSelected(selected, scan == null ? null : scan.findings, includeInfo);
+        appendSelected(selected, extra, includeInfo);
+        for (int i = 0; i < selected.size(); i++) {
+            if (i > 0) {
+                json.append(',');
+            }
+            appendFinding(json, selected.get(i), detailLimit);
+        }
+        json.append(']');
         json.append(",\"sondas\":[");
         if (probes != null) {
             for (int i = 0; i < probes.size(); i++) {
@@ -85,6 +81,21 @@ public final class FindingSummarizer {
         }
         json.append("]}");
         return json.toString();
+    }
+
+    private static void appendSelected(List<Finding> selected, List<Finding> source, boolean includeInfo) {
+        if (source == null) {
+            return;
+        }
+        for (Finding finding : source) {
+            if (selected.size() >= 50) {
+                return;
+            }
+            if (!includeInfo && finding.severity == Severity.INFO) {
+                continue;
+            }
+            selected.add(finding);
+        }
     }
 
     private static void appendFinding(StringBuilder json, Finding finding, int detailLimit) {

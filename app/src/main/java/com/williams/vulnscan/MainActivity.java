@@ -13,6 +13,7 @@ import com.williams.vulnscan.databinding.ActivityMainBinding;
 import com.williams.vulnscan.ui.AiFragment;
 import com.williams.vulnscan.ui.AnalysisFragment;
 import com.williams.vulnscan.ui.FirebaseFragment;
+import com.williams.vulnscan.ui.LoginFragment;
 
 public class MainActivity extends AppCompatActivity {
     @Override
@@ -21,11 +22,12 @@ public class MainActivity extends AppCompatActivity {
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         binding.pager.setAdapter(new MainPagerAdapter(this));
-        binding.pager.setOffscreenPageLimit(2);
+        binding.pager.setOffscreenPageLimit(3);
         new TabLayoutMediator(binding.tabs, binding.pager, (tab, position) -> {
             int label = switch (position) {
                 case 0 -> R.string.tab_analysis;
                 case 1 -> R.string.tab_firebase;
+                case 2 -> R.string.tab_login;
                 default -> R.string.tab_ai;
             };
             tab.setText(label);
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return 3;
+            return 4;
         }
 
         @NonNull
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
             return switch (position) {
                 case 0 -> new AnalysisFragment();
                 case 1 -> new FirebaseFragment();
+                case 2 -> new LoginFragment();
                 default -> new AiFragment();
             };
         }

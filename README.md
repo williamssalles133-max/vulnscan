@@ -1,6 +1,6 @@
 # VulnScan
 
-Analisador de vulnerabilidades de apps Android para uso próprio.
+Analisador de vulnerabilidades de apps Android para uso próprio. A aba Login só aponta fraquezas de autenticação e como corrigir; não testa senhas.
 
 Use apenas em aplicativos próprios ou com autorização. O app não envia o APK para lugar nenhum: a varredura é local. A chave opcional da xAI fica criptografada no aparelho.
 
