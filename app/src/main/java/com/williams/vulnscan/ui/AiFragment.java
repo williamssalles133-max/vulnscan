@@ -37,6 +37,7 @@ public class AiFragment extends Fragment {
             viewModel.clearKey();
         });
         binding.analyzeAi.setOnClickListener(v -> viewModel.analyzeWithAi(currentKey()));
+        binding.analyzeDeep.setOnClickListener(v -> viewModel.analyzeDeep(currentKey()));
         viewModel.keyMessage().observe(getViewLifecycleOwner(), message -> {
             if (binding != null && message != null) {
                 binding.keyStatus.setText(message);
@@ -49,14 +50,25 @@ public class AiFragment extends Fragment {
             boolean busy = Boolean.TRUE.equals(running);
             binding.progress.setVisibility(busy ? View.VISIBLE : View.GONE);
             binding.analyzeAi.setEnabled(!busy);
+            binding.analyzeDeep.setEnabled(!busy);
             binding.saveKey.setEnabled(!busy);
             binding.removeKey.setEnabled(!busy);
         });
+        viewModel.aiStatus().observe(getViewLifecycleOwner(), status -> {
+            if (binding == null) {
+                return;
+            }
+            boolean show = !Text.isBlank(status);
+            binding.aiStatus.setVisibility(show ? View.VISIBLE : View.GONE);
+            binding.aiStatus.setText(show ? status : "");
+        });
+        viewModel.aiTitle().observe(getViewLifecycleOwner(), title -> showTitle(title));
         viewModel.aiText().observe(getViewLifecycleOwner(), text -> {
             if (binding == null || Text.isBlank(text)) {
                 return;
             }
             binding.resultCard.setVisibility(View.VISIBLE);
+            showTitle(viewModel.aiTitle().getValue());
             binding.resultText.setText(MarkdownRenderer.render(requireContext(), text));
         });
         viewModel.aiError().observe(getViewLifecycleOwner(), event -> {
@@ -68,6 +80,18 @@ public class AiFragment extends Fragment {
                 Snackbar.make(requireActivity().findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void showTitle(String title) {
+        if (binding == null) {
+            return;
+        }
+        if (Text.isBlank(title)) {
+            binding.resultTitle.setVisibility(View.GONE);
+            return;
+        }
+        binding.resultTitle.setVisibility(View.VISIBLE);
+        binding.resultTitle.setText(title);
     }
 
     private String currentKey() {

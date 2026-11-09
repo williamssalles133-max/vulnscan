@@ -48,10 +48,15 @@ public final class MarkdownRenderer {
             }
             if (heading > 0 && heading <= 3 && trimmed.length() > heading && trimmed.charAt(heading) == ' ') {
                 int start = out.length();
-                appendInline(out, trimmed.substring(heading + 1).trim(), accent);
+                String title = trimmed.substring(heading + 1).trim();
+                appendInline(out, title, accent);
                 out.setSpan(new StyleSpan(Typeface.BOLD), start, out.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 float size = heading == 1 ? 1.3f : heading == 2 ? 1.16f : 1.05f;
                 out.setSpan(new RelativeSizeSpan(size), start, out.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                int color = severityColor(context, title);
+                if (color != 0) {
+                    out.setSpan(new ForegroundColorSpan(color), start, out.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
                 continue;
             }
             if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
@@ -113,6 +118,20 @@ public final class MarkdownRenderer {
             out.append(text.charAt(index));
             index++;
         }
+    }
+
+    private static int severityColor(Context context, String heading) {
+        SeverityHeading.Level level = SeverityHeading.parse(heading);
+        if (level == null) {
+            return 0;
+        }
+        int color = switch (level) {
+            case ALTO -> R.color.severity_high;
+            case MEDIO -> R.color.severity_medium;
+            case BAIXO -> R.color.severity_low;
+            case INFO -> R.color.severity_info;
+        };
+        return ContextCompat.getColor(context, color);
     }
 
     private static int dp(Context context, int value) {

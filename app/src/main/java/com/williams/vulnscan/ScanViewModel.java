@@ -13,9 +13,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.williams.vulnscan.ai.AiClient;
+import com.williams.vulnscan.ai.CodeContextSummarizer;
 import com.williams.vulnscan.ai.FindingSummarizer;
 import com.williams.vulnscan.analysis.AnalysisException;
 import com.williams.vulnscan.analysis.ApkAnalyzer;
+import com.williams.vulnscan.analysis.ApkCodeContext;
+import com.williams.vulnscan.analysis.ApkContextExtractor;
 import com.williams.vulnscan.analysis.LoginAuthScanner;
 import com.williams.vulnscan.analysis.LoginManifestReader;
 import com.williams.vulnscan.data.Event;
@@ -67,6 +70,8 @@ public class ScanViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> keyPresent = new MutableLiveData<>(false);
     private final MutableLiveData<String> keyMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> aiRunning = new MutableLiveData<>(false);
+    private final MutableLiveData<String> aiStatus = new MutableLiveData<>();
+    private final MutableLiveData<String> aiTitle = new MutableLiveData<>();
     private final MutableLiveData<String> aiText = new MutableLiveData<>();
     private final MutableLiveData<Event<String>> aiError = new MutableLiveData<>();
 
@@ -137,6 +142,14 @@ public class ScanViewModel extends AndroidViewModel {
 
     public LiveData<Boolean> aiRunning() {
         return aiRunning;
+    }
+
+    public LiveData<String> aiStatus() {
+        return aiStatus;
+    }
+
+    public LiveData<String> aiTitle() {
+        return aiTitle;
     }
 
     public LiveData<String> aiText() {
@@ -369,15 +382,13 @@ public class ScanViewModel extends AndroidViewModel {
             return;
         }
         aiRunning.setValue(true);
+        aiTitle.setValue(s(R.string.ai_title_summary));
+        aiStatus.setValue(s(R.string.status_ai));
         String summary = FindingSummarizer.summarize(currentScan, currentProbes, currentLogin);
         io.execute(() -> {
             try {
-                String key = Text.trimToNull(typedKey);
+                String key = resolveKey(typedKey);
                 if (key == null) {
-                    key = prefs().getApiKey();
-                }
-                if (key == null) {
-                    aiError.postValue(new Event<>(s(R.string.key_missing)));
                     return;
                 }
                 String answer = new AiClient().analyze(key, summary);
@@ -392,8 +403,119 @@ public class ScanViewModel extends AndroidViewModel {
                 aiError.postValue(new Event<>(s(R.string.err_network)));
             } finally {
                 aiRunning.postValue(false);
+                aiStatus.postValue(null);
             }
         });
+    }
+
+    public void analyzeDeep(String typedKey) {
+        SelectedTarget target = selected.getValue();
+        if (target == null || Text.isBlank(target.apkPath)) {
+            aiError.setValue(new Event<>(s(R.string.deep_no_target)));
+            return;
+        }
+        if (Boolean.TRUE.equals(aiRunning.getValue())) {
+            return;
+        }
+        if (Boolean.TRUE.equals(analysisRunning.getValue())) {
+            aiError.setValue(new Event<>(s(R.string.deep_busy)));
+            return;
+        }
+        aiRunning.setValue(true);
+        aiTitle.setValue(s(R.string.ai_title_deep));
+        aiStatus.setValue(s(R.string.status_deep_manifest));
+        ScanResult existing = scan.getValue();
+        List<ProbeResult> currentProbes = probes.getValue();
+        List<Finding> currentLogin = loginFindings.getValue();
+        io.execute(() -> {
+            try {
+                String key = resolveKey(typedKey);
+                if (key == null) {
+                    return;
+                }
+                try {
+                    AiClient.checkKey(key);
+                } catch (AiClient.AiException ex) {
+                    aiError.postValue(new Event<>(ex.getMessage()));
+                    return;
+                }
+                ScanResult manifest = existing;
+                String manifestNote = null;
+                boolean sameApk = manifest != null && target.apkPath.equals(manifest.apkPath);
+                if (!sameApk) {
+                    try {
+                        manifest = new ApkAnalyzer(getApplication()).analyze(target, message -> {
+                            if (!Text.isBlank(message)) {
+                                aiStatus.postValue(message);
+                            }
+                        });
+                        scan.postValue(manifest);
+                    } catch (AnalysisException ex) {
+                        manifest = null;
+                        manifestNote = ex.getMessage();
+                    }
+                }
+                aiStatus.postValue(s(R.string.status_deep_extract));
+                List<File> apks = apkFiles(target);
+                if (apks.isEmpty()) {
+                    aiError.postValue(new Event<>(s(R.string.err_apk_read)));
+                    return;
+                }
+                ApkCodeContext context;
+                try {
+                    context = new ApkContextExtractor().extract(apks);
+                } catch (java.util.zip.ZipException ex) {
+                    aiError.postValue(new Event<>(s(R.string.err_apk_corrupt)));
+                    return;
+                } catch (java.io.IOException ex) {
+                    aiError.postValue(new Event<>(s(R.string.err_apk_read)));
+                    return;
+                }
+                String json = CodeContextSummarizer.summarize(
+                        manifest,
+                        currentProbes,
+                        currentLogin,
+                        context,
+                        target.label,
+                        target.packageName,
+                        manifestNote);
+                aiStatus.postValue(s(R.string.status_deep_ai));
+                String answer = new AiClient().analyzeDeep(key, json);
+                aiText.postValue(answer);
+            } catch (AiClient.AiException ex) {
+                aiError.postValue(new Event<>(ex.getMessage()));
+            } catch (UnknownHostException ex) {
+                aiError.postValue(new Event<>(s(R.string.err_no_network)));
+            } catch (SocketTimeoutException ex) {
+                aiError.postValue(new Event<>(s(R.string.err_timeout)));
+            } catch (java.io.IOException ex) {
+                aiError.postValue(new Event<>(s(R.string.err_network)));
+            } catch (OutOfMemoryError ex) {
+                aiError.postValue(new Event<>(s(R.string.err_oom)));
+            } catch (Exception ex) {
+                aiError.postValue(new Event<>(s(R.string.err_analysis)));
+            } finally {
+                aiRunning.postValue(false);
+                aiStatus.postValue(null);
+            }
+        });
+    }
+
+    private String resolveKey(String typedKey) {
+        try {
+            String key = Text.trimToNull(typedKey);
+            if (key == null) {
+                key = prefs().getApiKey();
+            }
+            if (key == null) {
+                aiError.postValue(new Event<>(s(R.string.key_missing)));
+                return null;
+            }
+            return key;
+        } catch (Exception ex) {
+            aiError.postValue(new Event<>(s(R.string.key_unavailable)));
+            return null;
+        }
     }
 
     private List<File> apkFiles(SelectedTarget target) {
